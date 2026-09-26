@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Money Prayer — 10 Day Challenge</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e0d; --panel:#101614; --border:#1f2a27;
+  --gold:#d4af37; --gold-soft:#f0d878; --cyan:#3ee6d8; --text:#e8ede9; --muted:#7f9089;
+  --font-head:'Space Grotesk',sans-serif; --font-mono:'JetBrains Mono',monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+html,body{height:100%;}
+body{
+  background:radial-gradient(circle at 50% 0%,#132018 0%,var(--bg) 60%);
+  color:var(--text); font-family:var(--font-mono); min-height:100%;
+}
+.wrap{max-width:640px;margin:0 auto;padding:2rem 1rem 3rem;}
+h1{
+  font-family:var(--font-head); font-weight:700; letter-spacing:.5px;
+  color:var(--gold-soft); font-size:1.6rem; text-align:center; margin-bottom:.25rem;
+}
+.sub{text-align:center;color:var(--cyan);font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:1.75rem;}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:.6rem;padding:1.25rem;}
+.streak-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;font-family:var(--font-mono);}
+.streak-row .num{color:var(--gold);font-size:1.4rem;font-weight:600;}
+.progress{height:8px;background:#0d1512;border:1px solid var(--border);}
+.progress-bar{background:linear-gradient(90deg,var(--gold),var(--cyan));}
+.day{
+  display:flex;align-items:center;gap:.9rem;padding:.85rem .75rem;border:1px solid var(--border);
+  border-radius:.5rem;margin-bottom:.6rem;background:#0d1310;transition:.15s;cursor:pointer;
+}
+.day.done{border-color:var(--gold);background:#151c14;}
+.day.locked{opacity:.4;cursor:not-allowed;}
+.day input{width:1.2rem;height:1.2rem;accent-color:var(--gold);flex-shrink:0;pointer-events:none;}
+.day .label{flex:1;font-size:.95rem;}
+.day .label b{color:var(--gold-soft);font-family:var(--font-head);}
+.day .lock-icon{color:var(--muted);font-size:.85rem;}
+.reset-btn{
+  width:100%;margin-top:1rem;background:transparent;border:1px solid var(--border);color:var(--muted);
+  font-family:var(--font-mono);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;
+  padding:.55rem;border-radius:.4rem;
+}
+.reset-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.done-banner{text-align:center;color:var(--gold-soft);font-family:var(--font-head);margin-top:1rem;display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Money Prayer</h1>
+  <div class="sub">10 Day Challenge</div>
+  <div class="panel">
+    <div class="streak-row">
+      <span>Days completed</span>
+      <span class="num"><span id="doneCount">0</span>/10</span>
+    </div>
+    <div class="progress mb-3"><div class="progress-bar" id="bar" style="width:0%"></div></div>
+    <div id="days"></div>
+    <div class="done-banner" id="banner">🙏 Challenge complete — 10 for 10.</div>
+    <button class="reset-btn" id="resetBtn">Reset Challenge</button>
+  </div>
+</div>
+<script>
+const KEY = 'moneyPrayerChallenge10';
+let state = load();
+
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { days: Array(10).fill(false) };
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+}
+function render(){
+  const container = document.getElementById('days');
+  container.innerHTML = '';
+  let doneCount = 0;
+  state.days.forEach((done,i)=>{
+    if(done) doneCount++;
+    const unlocked = i===0 || state.days[i-1];
+    const div = document.createElement('div');
+    div.className = 'day' + (done?' done':'') + (!unlocked?' locked':'');
+    div.innerHTML = `<input type="checkbox" ${done?'checked':''} ${!unlocked?'disabled':''}>
+      <span class="label"><b>Day ${i+1}</b> — Money Prayer</span>
+      ${!unlocked?'<span class="lock-icon">🔒</span>':''}`;
+    if(unlocked){
+      div.addEventListener('click', ()=>{
+        state.days[i] = !state.days[i];
+        if(!state.days[i]){
+          for(let j=i+1;j<10;j++) state.days[j]=false;
+        }
+        save(); render();
+      });
+    }
+    container.appendChild(div);
+  });
+  document.getElementById('doneCount').textContent = doneCount;
+  document.getElementById('bar').style.width = (doneCount*10)+'%';
+  document.getElementById('banner').style.display = doneCount===10 ? 'block' : 'none';
+}
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  state = { days: Array(10).fill(false) };
+  save(); render();
+});
+render();
+</script>
+</body>
+</html>
